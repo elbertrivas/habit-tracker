@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { db } from '../db.js'
+import { computeStreaks } from '../streak.js'
 
 export const habitsRouter = Router()
 
@@ -9,6 +10,7 @@ interface HabitRow {
   notes: string | null
   created_at: string
   checked_in_today: number
+  check_in_dates: string | null
 }
 
 interface Habit {
@@ -17,16 +19,34 @@ interface Habit {
   notes: string | null
   created_at: string
   checked_in_today: boolean
+  current_streak: number
+  best_streak: number
 }
 
 function mapHabit(row: HabitRow): Habit {
-  return { ...row, checked_in_today: Boolean(row.checked_in_today) }
+  const dates = row.check_in_dates ? row.check_in_dates.split(',') : []
+  const { current, best } = computeStreaks(dates)
+  return {
+    id: row.id,
+    name: row.name,
+    notes: row.notes,
+    created_at: row.created_at,
+    checked_in_today: Boolean(row.checked_in_today),
+    current_streak: current,
+    best_streak: best,
+  }
 }
 
 const SELECT_WITH_STATUS = `
-  SELECT h.*, EXISTS(
-    SELECT 1 FROM check_ins c WHERE c.habit_id = h.id AND c.date = date('now')
-  ) AS checked_in_today
+  SELECT h.*,
+    EXISTS(
+      SELECT 1 FROM check_ins c WHERE c.habit_id = h.id AND c.date = date('now')
+    ) AS checked_in_today,
+    (
+      SELECT GROUP_CONCAT(date) FROM (
+        SELECT date FROM check_ins WHERE habit_id = h.id ORDER BY date
+      )
+    ) AS check_in_dates
   FROM habits h
 `
 
