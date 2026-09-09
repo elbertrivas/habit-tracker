@@ -1,13 +1,10 @@
 import { Router, type Request, type Response } from 'express'
 import { db } from '../db.js'
+import { todayUTC } from '../streak.js'
 
 export const checkInsRouter = Router({ mergeParams: true })
 
 type Params = { habitId: string }
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10)
-}
 
 const habitExistsStmt = db.prepare<[number]>('SELECT id FROM habits WHERE id = ?')
 const insertStmt = db.prepare<[number, string]>(
@@ -23,7 +20,7 @@ checkInsRouter.post('/', (req: Request<Params>, res: Response) => {
     res.status(404).json({ error: 'habit not found' })
     return
   }
-  const date = today()
+  const date = todayUTC()
   insertStmt.run(habitId, date)
   res.status(201).json({ habit_id: habitId, date, checked_in: true })
 })
@@ -34,7 +31,7 @@ checkInsRouter.delete('/', (req: Request<Params>, res: Response) => {
     res.status(404).json({ error: 'habit not found' })
     return
   }
-  const date = today()
+  const date = todayUTC()
   deleteStmt.run(habitId, date)
   res.json({ habit_id: habitId, date, checked_in: false })
 })

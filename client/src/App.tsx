@@ -129,6 +129,10 @@ function App() {
                 <div>
                   <strong>{habit.name}</strong>
                   {habit.notes && <span className="notes"> — {habit.notes}</span>}
+                  <div className="streaks">
+                    🔥 {habit.current_streak} day{habit.current_streak === 1 ? '' : 's'}
+                    <span className="best"> · best {habit.best_streak}</span>
+                  </div>
                 </div>
                 <button type="button" onClick={() => handleToggleCheckIn(habit)}>
                   {habit.checked_in_today ? 'Done today ✓' : 'Mark done'}

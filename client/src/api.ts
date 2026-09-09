@@ -4,6 +4,8 @@ export interface Habit {
   notes: string | null
   created_at: string
   checked_in_today: boolean
+  current_streak: number
+  best_streak: number
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
