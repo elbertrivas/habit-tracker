@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react'
 import './App.css'
-import { createHabit, deleteHabit, getHabits, updateHabit, type Habit } from './api'
+import {
+  checkIn,
+  createHabit,
+  deleteHabit,
+  getHabits,
+  undoCheckIn,
+  updateHabit,
+  type Habit,
+} from './api'
 
 function App() {
   const [habits, setHabits] = useState<Habit[]>([])
@@ -46,6 +54,22 @@ function App() {
       setEditingId(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update habit')
+    }
+  }
+
+  async function handleToggleCheckIn(habit: Habit) {
+    setError(null)
+    try {
+      if (habit.checked_in_today) {
+        await undoCheckIn(habit.id)
+      } else {
+        await checkIn(habit.id)
+      }
+      setHabits((prev) =>
+        prev.map((h) => (h.id === habit.id ? { ...h, checked_in_today: !h.checked_in_today } : h)),
+      )
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update check-in')
     }
   }
 
@@ -101,11 +125,14 @@ function App() {
                 </button>
               </li>
             ) : (
-              <li key={habit.id} className="habit-row">
+              <li key={habit.id} className={habit.checked_in_today ? 'habit-row checked' : 'habit-row'}>
                 <div>
                   <strong>{habit.name}</strong>
                   {habit.notes && <span className="notes"> — {habit.notes}</span>}
                 </div>
+                <button type="button" onClick={() => handleToggleCheckIn(habit)}>
+                  {habit.checked_in_today ? 'Done today ✓' : 'Mark done'}
+                </button>
                 <button type="button" onClick={() => startEdit(habit)}>
                   Edit
                 </button>

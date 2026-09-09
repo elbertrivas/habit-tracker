@@ -1,6 +1,7 @@
 import express from 'express'
 import { db } from './db.js'
 import { habitsRouter } from './routes/habits.js'
+import { checkInsRouter } from './routes/check-ins.js'
 
 const app = express()
 app.use(express.json())
@@ -11,6 +12,7 @@ app.get('/api/health', (_req, res) => {
 })
 
 app.use('/api/habits', habitsRouter)
+app.use('/api/habits/:habitId/check-in', checkInsRouter)
 
 const port = process.env.PORT ?? 3001
 app.listen(port, () => {

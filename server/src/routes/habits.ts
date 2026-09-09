@@ -3,15 +3,35 @@ import { db } from '../db.js'
 
 export const habitsRouter = Router()
 
+interface HabitRow {
+  id: number
+  name: string
+  notes: string | null
+  created_at: string
+  checked_in_today: number
+}
+
 interface Habit {
   id: number
   name: string
   notes: string | null
   created_at: string
+  checked_in_today: boolean
 }
 
-const listStmt = db.prepare<[], Habit>('SELECT * FROM habits ORDER BY created_at ASC, id ASC')
-const getStmt = db.prepare<[number], Habit>('SELECT * FROM habits WHERE id = ?')
+function mapHabit(row: HabitRow): Habit {
+  return { ...row, checked_in_today: Boolean(row.checked_in_today) }
+}
+
+const SELECT_WITH_STATUS = `
+  SELECT h.*, EXISTS(
+    SELECT 1 FROM check_ins c WHERE c.habit_id = h.id AND c.date = date('now')
+  ) AS checked_in_today
+  FROM habits h
+`
+
+const listStmt = db.prepare<[], HabitRow>(`${SELECT_WITH_STATUS} ORDER BY h.created_at ASC, h.id ASC`)
+const getStmt = db.prepare<[number], HabitRow>(`${SELECT_WITH_STATUS} WHERE h.id = ?`)
 const insertStmt = db.prepare<[string, string | null]>('INSERT INTO habits (name, notes) VALUES (?, ?)')
 const updateStmt = db.prepare<[string, string | null, number]>(
   'UPDATE habits SET name = ?, notes = ? WHERE id = ?',
@@ -25,7 +45,7 @@ function normalizeName(input: unknown): string | null {
 }
 
 habitsRouter.get('/', (_req, res) => {
-  res.json(listStmt.all())
+  res.json(listStmt.all().map(mapHabit))
 })
 
 habitsRouter.post('/', (req, res) => {
@@ -36,7 +56,7 @@ habitsRouter.post('/', (req, res) => {
   }
   const notes = typeof req.body?.notes === 'string' ? req.body.notes : null
   const { lastInsertRowid } = insertStmt.run(name, notes)
-  res.status(201).json(getStmt.get(lastInsertRowid as number))
+  res.status(201).json(mapHabit(getStmt.get(lastInsertRowid as number)!))
 })
 
 habitsRouter.put('/:id', (req, res) => {
@@ -53,7 +73,7 @@ habitsRouter.put('/:id', (req, res) => {
   }
   const notes = typeof req.body?.notes === 'string' ? req.body.notes : null
   updateStmt.run(name, notes, id)
-  res.json(getStmt.get(id))
+  res.json(mapHabit(getStmt.get(id)!))
 })
 
 habitsRouter.delete('/:id', (req, res) => {

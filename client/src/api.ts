@@ -3,6 +3,7 @@ export interface Habit {
   name: string
   notes: string | null
   created_at: string
+  checked_in_today: boolean
 }
 
 async function request<T>(url: string, options?: RequestInit): Promise<T> {
@@ -27,3 +28,9 @@ export const updateHabit = (id: number, input: { name: string; notes?: string })
 
 export const deleteHabit = (id: number) =>
   request<void>(`/api/habits/${id}`, { method: 'DELETE' })
+
+export const checkIn = (id: number) =>
+  request<{ checked_in: boolean }>(`/api/habits/${id}/check-in`, { method: 'POST' })
+
+export const undoCheckIn = (id: number) =>
+  request<{ checked_in: boolean }>(`/api/habits/${id}/check-in`, { method: 'DELETE' })
