@@ -65,9 +65,9 @@ function App() {
       } else {
         await checkIn(habit.id)
       }
-      setHabits((prev) =>
-        prev.map((h) => (h.id === habit.id ? { ...h, checked_in_today: !h.checked_in_today } : h)),
-      )
+      // Re-fetch rather than flip locally: current/best streak are server-computed
+      // and depend on more than just this habit's checked_in_today flag.
+      setHabits(await getHabits())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update check-in')
     }
@@ -83,9 +83,17 @@ function App() {
     }
   }
 
+  const pendingHabits = habits.filter((h) => !h.checked_in_today)
+
   return (
     <main>
       <h1>Habit Tracker</h1>
+
+      {!loading && pendingHabits.length > 0 && (
+        <div className="reminder">
+          Still to do today: {pendingHabits.map((h) => h.name).join(', ')}
+        </div>
+      )}
 
       <form onSubmit={handleAdd} className="add-form">
         <input
