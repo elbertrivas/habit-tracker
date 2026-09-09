@@ -37,6 +37,11 @@ main {
   flex: 1;
 }
 
+.habit-row.checked {
+  border-color: #2e7d32;
+  background: #f1f8f2;
+}
+
 .notes {
   color: #666;
 }
