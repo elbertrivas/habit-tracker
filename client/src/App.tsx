@@ -41,7 +41,7 @@ function App() {
   async function handleSaveEdit(id: number) {
     setError(null)
     try {
-      const updated = await updateHabit(id, { name: editName, note: editNotes || undefined })
+      const updated = await updateHabit(id, { name: editName, notes: editNotes || undefined })
       setHabits((prev) => prev.map((h) => (h.id === id ? updated : h)))
       setEditingId(null)
     } catch (err) {
