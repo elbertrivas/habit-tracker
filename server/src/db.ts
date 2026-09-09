@@ -9,6 +9,7 @@ fs.mkdirSync(dataDir, { recursive: true })
 
 export const db = new Database(path.join(dataDir, 'habit-tracker.db'))
 db.pragma('journal_mode = WAL')
+db.pragma('foreign_keys = ON')
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS habits (
