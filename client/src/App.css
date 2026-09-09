@@ -5,6 +5,16 @@ main {
   font-family: system-ui, sans-serif;
 }
 
+.reminder {
+  background: #fff8e1;
+  border: 1px solid #f0d878;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #6b5900;
+}
+
 .add-form {
   display: flex;
   gap: 0.5rem;
